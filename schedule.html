@@ -1,0 +1,226 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="免費中小企業排班通 - 查看與管理您的班表，支援日曆視圖與多人協作的免費線上排班系統。">
+    <meta name="keywords" content="排班系統, 免費排班系統, 線上排班系統, 排班">
+    <meta name="robots" content="index, follow">
+    <title>免費中小企業排班通 - {{ schedule.name }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+    <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
+    <link href="/static/style.css" rel="stylesheet">
+    <style>
+        #calendar { max-width: 100%; margin: 0 auto; }
+        .fc-event { cursor: pointer; }
+        .fc-event.reminder { background-color: #dc2626; }
+    </style>
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        "name": "免費中小企業排班通 - 班表管理",
+        "url": "https://123go.tw/schedule/{{ schedule.id }}",
+        "description": "在免費中小企業排班通中查看與管理班表，支援日曆視圖與多人協作。",
+        "publisher": {
+            "@type": "Organization",
+            "name": "免費中小企業排班通",
+            "logo": {
+                "@type": "ImageObject",
+                "url": "https://123go.tw/static/logo.png"
+            }
+        }
+    }
+    </script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto p-4 sm:p-6 max-w-4xl">
+        <div class="flex flex-col sm:flex-row justify-between items-center mb-4 sm:mb-6">
+            <h1 class="text-xl sm:text-2xl font-bold text-gray-800 mb-2 sm:mb-0">{{ schedule.name }}</h1>
+            <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+                <a href="{{ url_for('freeindex') }}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm sm:text-base">返回首頁</a>
+                {% if is_owner %}
+                    <a href="{{ url_for('export_schedule', schedule_id=schedule.id) }}" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 text-sm sm:text-base">匯出為 JSON</a>
+                {% endif %}
+            </div>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="bg-{{ 'green' if category == 'success' else 'red' }}-100 border-{{ 'green' if category == 'success' else 'red' }}-400 text-{{ 'green' if category == 'success' else 'red' }}-700 px-4 py-3 rounded relative mb-4" role="alert">
+                        {{ message }}
+                        <span class="absolute top-0 bottom-0 right-0 px-4 py-3">
+                            <svg class="fill-current h-6 w-6 text-{{ 'green' if category == 'success' else 'red' }}-500" role="button" onclick="this.parentElement.parentElement.remove()" viewBox="0 0 20 20"><path d="M14.348 5.652a.5.5 0 00-.707 0L10 9.293 6.357 5.652a.5.5 0 10-.707.707L9.293 10l-3.643 3.643a.5.5 0 10.707.707L10 10.707l3.643 3.643a.5.5 0 00.707-.707L10.707 10l3.641-3.641a.5.5 0 000-.707z"/></svg>
+                        </span>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="bg-white rounded-lg shadow p-4 sm:p-6 mb-4 sm:mb-6">
+            <h2 class="text-lg sm:text-xl font-semibold mb-4">新增班次</h2>
+            <form method="POST" action="{{ url_for('add_shift', schedule_id=schedule.id) }}">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label for="date" class="block text-gray-700 text-sm sm:text-base">日期</label>
+                        <input type="date" id="date" name="date" class="w-full border rounded px-3 py-2 text-sm sm:text-base" min="2025-01-01" max="2099-12-31" required>
+                    </div>
+                    <div>
+                        <label for="shift" class="block text-gray-700 text-sm sm:text-base">班次</label>
+                        {% if is_owner %}
+                            <input type="text" id="shift" name="shift" class="w-full border rounded px-3 py-2 text-sm sm:text-base" required>
+                        {% else %}
+                            <select id="shift" name="shift" class="w-full border rounded px-3 py-2 text-sm sm:text-base" required>
+                                {% for shift_type in shift_types %}
+                                    <option value="{{ shift_type }}">{{ shift_type }}</option>
+                                {% endfor %}
+                            </select>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <label class="inline-flex items-center text-sm sm:text-base">
+                        <input type="checkbox" name="reminder" class="form-checkbox h-4 w-4 sm:h-5 sm:w-5">
+                        <span class="ml-2 text-gray-700">設置提醒</span>
+                    </label>
+                </div>
+                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm sm:text-base">新增</button>
+            </form>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-4 sm:p-6 mb-4 sm:mb-6">
+            <h2 class="text-lg sm:text-xl font-semibold mb-4">搜尋班次</h2>
+            <form method="POST" action="{{ url_for('search_shifts', schedule_id=schedule.id) }}">
+                <div class="mb-4">
+                    <label for="query" class="block text-gray-700 text-sm sm:text-base">搜尋（日期或班次）</label>
+                    <input type="text" id="query" name="query" class="w-full border rounded px-3 py-2 text-sm sm:text-base" value="{{ search_query if search_query else '' }}">
+                </div>
+                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm sm:text-base">搜尋</button>
+            </form>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-4 sm:p-6 mb-4 sm:mb-6">
+            <h2 class="text-lg sm:text-xl font-semibold mb-4">班次日曆</h2>
+            <div id="calendar"></div>
+        </div>
+
+        {% if is_owner %}
+            <div class="bg-white rounded-lg shadow p-4 sm:p-6 mb-4 sm:mb-6">
+                <h2 class="text-lg sm:text-xl font-semibold mb-4">管理班次類型</h2>
+                <form method="POST" action="{{ url_for('update_shift_types', schedule_id=schedule.id) }}">
+                    <div class="mb-4">
+                        <label for="shift_types" class="block text-gray-700 text-sm sm:text-base">班次類型（每行一個）</label>
+                        <textarea id="shift_types" name="shift_types" class="w-full border rounded px-3 py-2 text-sm sm:text-base" rows="4">{{ '\n'.join(shift_types) }}</textarea>
+                    </div>
+                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm sm:text-base">更新</button>
+                </form>
+            </div>
+
+            <div class="bg-white rounded-lg shadow p-4 sm:p-6 mb-4 sm:mb-6">
+                <h2 class="text-lg sm:text-xl font-semibold mb-4">協作者列表</h2>
+                <ul class="divide-y divide-gray-200">
+                    {% for collaborator in collaborators %}
+                        <li class="py-2 flex justify-between items-center">
+                            <span class="text-sm sm:text-base">{{ collaborator.user.name }} ({{ collaborator.user.email }})</span>
+                            <a href="{{ url_for('remove_collaborator', schedule_id=schedule.id, user_id=collaborator.user_id) }}" class="text-red-600 hover:underline text-sm sm:text-base" onclick="return confirm('確定要移除此協作者？')">移除</a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+
+        <div class="bg-white rounded-lg shadow p-4 sm:p-6">
+            <h2 class="text-lg sm:text-xl font-semibold mb-4">操作歷史</h2>
+            <ul class="divide-y divide-gray-200">
+                {% for entry in history %}
+                    <li class="py-2 text-sm sm:text-base">{{ entry.user.name }} - {{ entry.action }} - {{ entry.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var calendarEl = document.getElementById('calendar');
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: window.innerWidth < 640 ? 'timeGridDay' : 'dayGridMonth',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                },
+                events: [
+                    {% for shift in shifts %}
+                        {
+                            title: '{{ shift.user.name }} - {{ shift.shift }}',
+                            start: '{{ shift.date }}',
+                            className: '{{ "reminder" if shift.reminder else "" }}',
+                            extendedProps: {
+                                shiftId: {{ shift.id }},
+                                userId: '{{ shift.user_id }}'
+                            }
+                        },
+                    {% endfor %}
+                ],
+                eventClick: function(info) {
+                    {% if is_owner %}
+                        if (confirm('是否要刪除此班次？')) {
+                            window.location.href = '{{ url_for("delete_shift", schedule_id=schedule.id, shift_id=0) }}'.replace('0', info.event.extendedProps.shiftId);
+                        }
+                    {% else %}
+                        if ('{{ user.sub }}' === info.event.extendedProps.userId && confirm('是否要刪除此班次？')) {
+                            window.location.href = '{{ url_for("delete_shift", schedule_id=schedule.id, shift_id=0) }}'.replace('0', info.event.extendedProps.shiftId);
+                        }
+                    {% endif %}
+                },
+                eventContent: function(arg) {
+                    return { html: '<div class="p-1 text-sm sm:text-base">' + arg.event.title + '</div>' };
+                }
+            });
+            calendar.render();
+        });
+    </script>
+</body>
+</html>
