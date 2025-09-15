@@ -61,14 +61,14 @@
         "@context": "https://schema.org",
         "@type": "WebPage",
         "name": "免費中小企業排班通 - 班表管理",
-        "url": "https://123go.tw/schedule/{{ schedule.id }}",
+        "url": "{{ url_for('view_schedule', schedule_id=schedule.id, _external=True) }}",
         "description": "在免費中小企業排班通中查看與管理班表，支援日曆視圖與多人協作。",
         "publisher": {
             "@type": "Organization",
             "name": "免費中小企業排班通",
             "logo": {
                 "@type": "ImageObject",
-                "url": "https://123go.tw/static/logo.png"
+                "url": "{{ url_for('static', filename='logo.png', _external=True) }}"
             }
         }
     }

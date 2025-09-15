@@ -60,14 +60,14 @@
         "@context": "https://schema.org",
         "@type": "WebPage",
         "name": "免費中小企業排班通 - 管理班表",
-        "url": "https://123go.tw/freeindex",
+        "url": "{{ url_for('freeindex', _external=True) }}",
         "description": "使用免費中小企業排班通管理您的班表，支援創建、加入與協作，免費高效的線上排班系統。",
         "publisher": {
             "@type": "Organization",
             "name": "免費中小企業排班通",
             "logo": {
                 "@type": "ImageObject",
-                "url": "https://123go.tw/static/logo.png"
+                "url": "{{ url_for('static', filename='logo.png', _external=True) }}"
             }
         }
     }
@@ -168,7 +168,7 @@
                     <p class="text-gray-600 text-sm sm:text-base">在日曆中新增、修改或刪除班次，支援月/週/日視圖，輕鬆管理您的團隊。</p>
                 </div>
             </div>
-            <p class="mt-4 text-center text-sm sm:text-base"><a href="https://123go.tw/" class="text-blue-600 hover:underline">返回免費中小企業排班通首頁</a></p>
+            <p class="mt-4 text-center text-sm sm:text-base"><a href="{{ url_for('index') }}" class="text-blue-600 hover:underline">返回免費中小企業排班通首頁</a></p>
         </div>
     </div>
 </body>

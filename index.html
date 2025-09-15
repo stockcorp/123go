@@ -58,11 +58,11 @@
         "@context": "https://schema.org",
         "@type": "WebSite",
         "name": "免費中小企業排班通",
-        "url": "https://123go.tw/",
+        "url": "{{ url_for('index', _external=True) }}",
         "description": "免費中小企業排班通提供免費線上排班系統，支援 Google 登入、多人協作與直觀日曆，專為中小企業設計。",
         "potentialAction": {
             "@type": "SearchAction",
-            "target": "https://123go.tw/search?q={search_term_string}",
+            "target": "{{ url_for('search_shifts', schedule_id='search') }}?q={search_term_string}",
             "query-input": "required name=search_term_string"
         }
     }

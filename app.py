@@ -18,8 +18,8 @@ oauth = OAuth(app)
 # Google OAuth 配置
 google = oauth.register(
     name='google',
-    client_id='YOUR_GOOGLE_CLIENT_ID',  # 從 Google Cloud Console 獲取
-    client_secret='YOUR_GOOGLE_CLIENT_SECRET',  # 從 Google Cloud Console 獲取
+    client_id=os.getenv('GOOGLE_CLIENT_ID'),  # 從環境變數獲取
+    client_secret=os.getenv('GOOGLE_CLIENT_SECRET'),  # 從環境變數獲取
     server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
     client_kwargs={'scope': 'openid email profile'}
 )
