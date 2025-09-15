@@ -1,0 +1,44 @@
+CREATE TABLE user (
+    id TEXT PRIMARY KEY,
+    email TEXT NOT NULL,
+    name TEXT NOT NULL,
+    language TEXT DEFAULT 'zh-TW'
+);
+
+CREATE TABLE schedule (
+    id TEXT PRIMARY KEY,  -- 改為 TEXT 以支援 10 位數 ID
+    name TEXT NOT NULL,
+    owner_id TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    shift_types TEXT DEFAULT '["早班","晚班","夜班"]',
+    FOREIGN KEY (owner_id) REFERENCES user(id)
+);
+
+CREATE TABLE shift (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    schedule_id TEXT NOT NULL,
+    user_id TEXT NOT NULL,
+    date TEXT NOT NULL,
+    shift TEXT NOT NULL,
+    reminder BOOLEAN DEFAULT FALSE,
+    FOREIGN KEY (schedule_id) REFERENCES schedule(id),
+    FOREIGN KEY (user_id) REFERENCES user(id)
+);
+
+CREATE TABLE collaborator (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    schedule_id TEXT NOT NULL,
+    user_id TEXT NOT NULL,
+    FOREIGN KEY (schedule_id) REFERENCES schedule(id),
+    FOREIGN KEY (user_id) REFERENCES user(id)
+);
+
+CREATE TABLE history (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    schedule_id TEXT NOT NULL,
+    user_id TEXT NOT NULL,
+    action TEXT NOT NULL,
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (schedule_id) REFERENCES schedule(id),
+    FOREIGN KEY (user_id) REFERENCES user(id)
+);
