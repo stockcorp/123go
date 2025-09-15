@@ -19,7 +19,6 @@
 
 ## 專案結構
 ```
-free-sme-scheduler/
 ├── app.py
 ├── index.html           # 登入頁面
 ├── freeindex.html       # 主頁，含「如何開始」區塊
