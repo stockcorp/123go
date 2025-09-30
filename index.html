@@ -37,7 +37,8 @@
         }
         return gk_fileData[filename] || "";
         }
-        </script><!DOCTYPE html>
+        </script>
+<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
@@ -53,27 +54,16 @@
         .login-container { animation: fadeIn 1s ease-in; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
-    <script type="application/ld+json">
-    {
-        "@context": "https://schema.org",
-        "@type": "WebSite",
-        "name": "免費中小企業排班通",
-        "url": "{{ url_for('index', _external=True) }}",
-        "description": "免費中小企業排班通提供免費線上排班系統，支援 Google 登入、多人協作與直觀日曆，專為中小企業設計。",
-        "potentialAction": {
-            "@type": "SearchAction",
-            "target": "{{ url_for('search_shifts', schedule_id='search') }}?q={search_term_string}",
-            "query-input": "required name=search_term_string"
-        }
-    }
-    </script>
 </head>
 <body class="flex items-center justify-center min-h-screen px-4">
     <div class="login-container bg-white rounded-lg shadow-xl p-6 sm:p-8 max-w-md w-full text-center">
         <img src="/static/logo.png" alt="免費中小企業排班通標誌" class="mx-auto mb-6 h-16">
         <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-4">免費中小企業排班通</h1>
         <p class="text-gray-600 mb-6 text-sm sm:text-base">免費線上排班系統，無縫協作，提升您的團隊效率</p>
-        <a href="{{ url_for('login') }}" class="inline-block bg-blue-600 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-full hover:bg-blue-700 transition text-sm sm:text-base">使用 Google 登入</a>
+        <!-- 這裡改成完整 URL 指向你的 Flask 登入 -->
+        <a href="https://123gocorp.com/login" class="inline-block bg-blue-600 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-full hover:bg-blue-700 transition text-sm sm:text-base">
+            使用 Google 登入
+        </a>
         <div class="mt-4 bg-gray-100 rounded-lg p-4 text-sm sm:text-base">
             <p class="text-gray-600">免費中小企業排班通提供簡單易用的排班工具，支援 Google 登入，無需付費即可開始管理您的團隊班表！</p>
         </div>
