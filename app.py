@@ -8,8 +8,8 @@ from flask import escape
 import os
 
 app = Flask(__name__)
-app.secret_key = os.urandom(24).hex()
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///schedule.db'
+app.secret_key = os.getenv('SECRET_KEY', os.urandom(24).hex())  # 使用環境變數固定 secret_key
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('MYSQL_DATABASE_URI', 'mysql+pymysql://username:password@host:3306/db_name')  # 改為 MySQL URI
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
@@ -18,8 +18,8 @@ oauth = OAuth(app)
 # Google OAuth 配置
 google = oauth.register(
     name='google',
-    client_id=os.getenv('GOOGLE_CLIENT_ID'),  # 使用標準名稱，從環境變數獲取
-    client_secret=os.getenv('GOOGLE_CLIENT_SECRET'),  # 使用標準名稱，從環境變數獲取
+    client_id=os.getenv('GOOGLE_CLIENT_ID'),
+    client_secret=os.getenv('GOOGLE_CLIENT_SECRET'),
     server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
     client_kwargs={'scope': 'openid email profile'}
 )
@@ -331,7 +331,5 @@ def add_to_db(self):
 History.add_to_db = add_to_db
 
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
     port = int(os.environ.get("PORT", 5000))  # Render 會自動提供 PORT
     app.run(host="0.0.0.0", port=port, debug=False)
