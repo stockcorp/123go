@@ -9,7 +9,7 @@ import os
 
 app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY', os.urandom(24).hex())  # 使用環境變數固定 secret_key
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('MYSQL_DATABASE_URI', 'mysql+pymysql://if0_40071102:VWzlCGTgFf@sql123.epizy.com:3306/if0_40071102_free_sme_db')  # 改為 MySQL URI
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('MYSQL_DATABASE_URI')  # 改為 MySQL URI
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
