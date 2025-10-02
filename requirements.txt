@@ -1,6 +1,7 @@
 Flask==3.0.3
 Flask-SQLAlchemy==3.1.1
-authlib==1.3.1  # 升級修復 _app_ctx_stack 錯誤
-gunicorn
-pymysql
-mysql-connector-python
+authlib==1.3.1
+gunicorn==23.0.0
+pymysql==1.1.2
+mysql-connector-python==9.4.0
+requests==2.32.3
